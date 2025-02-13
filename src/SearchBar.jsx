@@ -1,7 +1,7 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { initializeApp } from "firebase/app";
-import { getFirestore, collection, addDoc, doc, updateDoc, deleteDoc } from "firebase/firestore";
-import {useNavigate} from "react-router-dom";
+import { getFirestore, collection, addDoc, doc, updateDoc, deleteDoc, getDocs } from "firebase/firestore";
+import { useNavigate } from "react-router-dom";
 
 const firebaseConfig = {
   apiKey: "AIzaSyCMUKkzDt1JKYBmVOY7gAP5e5Ihi5km2JE",
@@ -25,6 +25,32 @@ const SearchBar = () => {
   const navigate = useNavigate(); 
 
   
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const docs = await getDocs(collection(db, "items"));
+        const data = [];
+        docs.forEach((doc) => {
+          const docData = doc.data();
+      
+          const timestamp = docData.timestamp
+            ? docData.timestamp.toDate().toLocaleString()
+            : '';
+          data.push({ 
+            id: doc.id, 
+            ...docData,
+            timestamp 
+          });
+        });
+        setItems(data);
+      } catch (error) {
+        console.error("Error fetching data: ", error);
+      }
+    };
+
+    fetchData();
+  }, []);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (inputValue.trim() !== "") {
@@ -98,7 +124,7 @@ const SearchBar = () => {
       console.error("Error deleting item:", error);
     }
   };
-
+console.log(items)
   return (
     <div>
       <form onSubmit={handleSubmit}>
